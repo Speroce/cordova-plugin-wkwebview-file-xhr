@@ -877,6 +877,11 @@
   
   HandlerFactory.getHandler = function (context)
   {
+    var objectUrl = URL.createObjectURL(new Blob([]));
+    var start = objectUrl.split('//')[0];
+    if (start === objectUrl) {
+      start = objectUrl.split('/')[0];
+    }
     var promise = new Promise(function (resolve)
     {
       HandlerFactory._getConfig().then(function (config)
@@ -892,12 +897,14 @@
         {
           resolve(new FileHandler(context, config));
         }
+        else if (context.url.startsWith(start)) {
+          resolve(new DelegateHandler(context, config));
+        } 
         else
         {
           if ("all" === interceptRemoteRequests ||
              ("secureOnly" === interceptRemoteRequests && context.url.startsWith("https://")))
             resolve(new HttpHandler(context, config));
-            // fwre
           else
             resolve(new DelegateHandler(context, config));
         }
